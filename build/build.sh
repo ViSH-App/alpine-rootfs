@@ -27,10 +27,10 @@ echo ">> Building $OUT_NAME (alpine $ALPINE_VERSION, $ARCH on $DOCKER_PLATFORM)"
 docker run --rm --platform "$DOCKER_PLATFORM" \
   -v "$REPO_ROOT/build:/build:ro" \
   -v "$DIST_DIR:/out" \
-  -e ALPINE_BRANCH \
-  -e ALPINE_VERSION \
-  -e ARCH \
-  -e OUT_NAME \
+  -e ALPINE_BRANCH="$ALPINE_BRANCH" \
+  -e ALPINE_VERSION="$ALPINE_VERSION" \
+  -e ARCH="$ARCH" \
+  -e OUT_NAME="$OUT_NAME" \
   "alpine:${ALPINE_VERSION}" \
   /build/inside.sh
 
