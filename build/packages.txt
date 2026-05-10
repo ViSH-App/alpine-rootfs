@@ -20,9 +20,8 @@ tar
 gzip
 xz
 
-# Account / privilege management
+# Account management
 shadow
-sudo
 
 # Crypto / TLS roots
 ca-certificates
