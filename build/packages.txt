@@ -1,0 +1,43 @@
+# Packages installed on top of alpine-minirootfs.
+# Keep this list lean — gzipped rootfs target is < 15 MB.
+
+# Base + Alpine setup tooling (provides setup-alpine, setup-* helpers)
+alpine-base
+alpine-conf
+
+# Editors
+nano
+
+# Day-to-day userland (replace busybox applets where it matters)
+coreutils
+findutils
+grep
+sed
+gawk
+less
+file
+tar
+gzip
+xz
+
+# Account / privilege management
+shadow
+sudo
+
+# Crypto / TLS roots
+ca-certificates
+openssl
+tzdata
+
+# Networking
+curl
+wget
+openssh-client
+iproute2
+iputils
+bind-tools
+
+# VCS & process inspection
+git
+procps-ng
+htop
