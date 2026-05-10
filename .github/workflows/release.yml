@@ -1,6 +1,8 @@
 name: Build & release rootfs
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       alpine_version:
