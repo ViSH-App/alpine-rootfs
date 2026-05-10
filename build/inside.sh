@@ -51,6 +51,13 @@ EOF
 # Blank the MOTD shipped by the miniroot.
 : > "$TARGET/etc/motd"
 
+# System-wide SSL certificate bundle for tools that honor SSL_CERT_FILE.
+mkdir -p "$TARGET/etc/profile.d"
+cat > "$TARGET/etc/profile.d/ssl-cert.sh" <<'EOF'
+export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+EOF
+chmod 0644 "$TARGET/etc/profile.d/ssl-cert.sh"
+
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
   "$TARGET/var/cache/apk/"* \
