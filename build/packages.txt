@@ -1,0 +1,46 @@
+# Packages installed on top of alpine-minirootfs.
+# Keep this list lean to minimize the compressed rootfs size.
+#
+# Rule of thumb: if BusyBox already provides a usable applet
+# (cp/mv/ls/find/grep/sed/awk/less/tar/gzip/wget/ping/ip/ps/top/...), do
+# NOT install the standalone GNU/Alpine package just to duplicate it.
+
+# glibc-compat shim so glibc-linked binaries can run on musl.
+gcompat
+
+# C/C++ runtime libraries
+libgcc
+libstdc++
+libunwind
+
+# Shell
+bash
+
+# Editors
+nano
+vim
+
+# Userland gaps that BusyBox does not cover
+file
+sed
+ripgrep
+
+# Account management (useradd/usermod/etc. — busybox only has adduser)
+shadow
+
+# Crypto / TLS roots
+ca-certificates
+openssl
+tzdata
+
+# Networking gaps (busybox has wget/ping/ip/nslookup but not curl/ssh/dig)
+curl
+openssh-client
+bind-tools
+
+# VCS & richer process inspection
+git
+htop
+
+# System information
+fastfetch
