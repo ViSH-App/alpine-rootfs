@@ -8,7 +8,7 @@
 - 架构：`aarch64`（ARM64）。结构上为后续扩展其它架构留位，本期只交付 ARM64。
 - 文件：`alpine-aarch64-rootfs.tar.gz` 与 `alpine-aarch64-rootfs.tar.gz.sha256`。
 - 基线：固定版本的 Alpine miniroot（参见 [`build/build.sh`](build/build.sh) 中的 `ALPINE_VERSION`），不使用 `latest`/`edge` 之类浮动标签。
-- 预装：`alpine-conf`（含 `setup-alpine`）、`nano`、`vim`、`git`、`curl`/`wget`、`openssh-client`、`ca-certificates`、`tzdata`、`coreutils` 等常用工具。完整清单见 [`build/packages.txt`](build/packages.txt)。
+- 预装：`nano`、`vim`、`git`、`curl`、`openssh-client`、`ca-certificates`、`tzdata` 等常用工具。完整清单见 [`build/packages.txt`](build/packages.txt)。
 - 不启用任何系统服务（无真实 init 环境）。
 - `/proc`、`/sys`、`/dev` 目录保留为空，不包含运行时动态内容。
 

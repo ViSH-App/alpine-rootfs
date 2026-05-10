@@ -5,12 +5,6 @@
 # (cp/mv/ls/find/grep/sed/awk/less/tar/gzip/wget/ping/ip/ps/top/...), do
 # NOT install the standalone GNU/Alpine package just to duplicate it.
 
-# Alpine setup tooling (provides setup-alpine, setup-* helpers).
-# Skip alpine-base on purpose — the miniroot already ships baselayout +
-# busybox + apk-tools + musl, and alpine-base mainly adds openrc which
-# we cannot use without a real init.
-alpine-conf
-
 # glibc-compat shim so glibc-linked binaries can run on musl.
 gcompat
 

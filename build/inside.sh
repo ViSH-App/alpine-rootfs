@@ -45,6 +45,9 @@ chroot "$TARGET" /sbin/apk add --no-cache $PACKAGES
 # Drop install-time DNS; consumers manage this at runtime.
 rm -f "$TARGET/etc/resolv.conf"
 
+# Blank the MOTD shipped by the miniroot.
+: > "$TARGET/etc/motd"
+
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
   "$TARGET/var/cache/apk/"* \
