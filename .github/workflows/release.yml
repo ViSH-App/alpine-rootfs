@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       alpine_version:
-        description: "Alpine version (e.g. 3.23.0). Must be a real x.y.z release."
+        description: "Alpine version (e.g. 3.23.3). Must be a real x.y.z release."
         required: false
-        default: "3.23.0"
+        default: "3.23.3"
   schedule:
     # Weekly rebuild to pick up Alpine point releases / security fixes.
     - cron: "17 6 * * 1"
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCH: aarch64
-      ALPINE_VERSION: ${{ github.event.inputs.alpine_version || '3.23.0' }}
+      ALPINE_VERSION: ${{ github.event.inputs.alpine_version || '3.23.3' }}
     steps:
       - uses: actions/checkout@v4
 

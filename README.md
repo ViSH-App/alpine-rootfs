@@ -53,7 +53,7 @@ shasum -a 256 -c alpine-aarch64-rootfs.tar.gz.sha256
 可覆写默认值：
 
 ```sh
-ALPINE_VERSION=3.23.0 ARCH=aarch64 ./build/build.sh
+ALPINE_VERSION=3.23.3 ARCH=aarch64 ./build/build.sh
 ```
 
 产物会写入仓库根的 `dist/` 目录：
@@ -71,7 +71,7 @@ GitHub Actions workflow：[`.github/workflows/release.yml`](.github/workflows/re
 
 - 手动触发：仓库 → Actions → "Build & release rootfs" → Run workflow，可选填 `alpine_version`。
 - 定期触发：每周一 06:17 UTC 自动跑一次，跟随 Alpine 上游修补。
-- 每次成功构建会创建一个新的 Release（tag 形如 `v3.23.0-YYYYMMDD-HHMM`），并标记为 `latest`，于是 `releases/latest/download/...` 自动指向新版本。
+- 每次成功构建会创建一个新的 Release（tag 形如 `v3.23.3-YYYYMMDD-HHMM`），并标记为 `latest`，于是 `releases/latest/download/...` 自动指向新版本。
 - Release 中附带产物本体与 `.sha256` 校验文件。
 
 ## 不在范围内
