@@ -17,6 +17,7 @@ vim
 
 # Userland gaps that BusyBox does not cover
 file
+sed
 
 # Account management (useradd/usermod/etc. — busybox only has adduser)
 shadow
