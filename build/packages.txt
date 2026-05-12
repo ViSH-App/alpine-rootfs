@@ -8,6 +8,11 @@
 # glibc-compat shim so glibc-linked binaries can run on musl.
 gcompat
 
+# C/C++ runtime libraries
+libgcc
+libstdc++
+libunwind
+
 # Shell
 bash
 
