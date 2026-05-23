@@ -8,12 +8,13 @@ set -eu
 : "${ALPINE_VERSION:?}"
 : "${ARCH:?}"
 : "${OUT_NAME:?}"
+: "${OUT_NAME_ZSTD:?}"
 
 TARGET=/tmp/rootfs
 WORK=/tmp/work
 mkdir -p "$TARGET" "$WORK"
 
-apk add --no-cache curl tar >/dev/null
+apk add --no-cache curl tar zstd >/dev/null
 
 MIRROR="https://dl-cdn.alpinelinux.org/alpine"
 MIN_TARBALL="alpine-minirootfs-${ALPINE_VERSION}-${ARCH}.tar.gz"
@@ -71,8 +72,12 @@ for d in proc sys dev; do
   mkdir -p "$TARGET/$d"
 done
 
-echo ">> Packing $OUT_NAME"
+echo ">> Packing $OUT_NAME and $OUT_NAME_ZSTD"
 cd "$TARGET"
-tar --numeric-owner --owner=0 --group=0 -czf "/out/$OUT_NAME" .
+TAR_TMP="$WORK/rootfs.tar"
+tar --numeric-owner --owner=0 --group=0 -cf "$TAR_TMP" .
+gzip -9 -c "$TAR_TMP" > "/out/$OUT_NAME"
+zstd -19 --long -T0 -q -o "/out/$OUT_NAME_ZSTD" "$TAR_TMP"
+rm -f "$TAR_TMP"
 
-ls -lah "/out/$OUT_NAME"
+ls -lah "/out/$OUT_NAME" "/out/$OUT_NAME_ZSTD"

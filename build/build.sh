@@ -18,11 +18,14 @@ esac
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$REPO_ROOT/dist"
 OUT_NAME="alpine-${ARCH}-rootfs.tar.gz"
+OUT_NAME_ZSTD="alpine-${ARCH}-rootfs.tar.zst"
 
 mkdir -p "$DIST_DIR"
-rm -f "$DIST_DIR/$OUT_NAME" "$DIST_DIR/$OUT_NAME.sha256"
+rm -f \
+  "$DIST_DIR/$OUT_NAME" "$DIST_DIR/$OUT_NAME.sha256" \
+  "$DIST_DIR/$OUT_NAME_ZSTD" "$DIST_DIR/$OUT_NAME_ZSTD.sha256"
 
-echo ">> Building $OUT_NAME (alpine $ALPINE_VERSION, $ARCH on $DOCKER_PLATFORM)"
+echo ">> Building $OUT_NAME, $OUT_NAME_ZSTD (alpine $ALPINE_VERSION, $ARCH on $DOCKER_PLATFORM)"
 
 docker run --rm --platform "$DOCKER_PLATFORM" \
   -v "$REPO_ROOT/build:/build:ro" \
@@ -31,16 +34,21 @@ docker run --rm --platform "$DOCKER_PLATFORM" \
   -e ALPINE_VERSION="$ALPINE_VERSION" \
   -e ARCH="$ARCH" \
   -e OUT_NAME="$OUT_NAME" \
+  -e OUT_NAME_ZSTD="$OUT_NAME_ZSTD" \
   "alpine:${ALPINE_VERSION}" \
   /build/inside.sh
 
 cd "$DIST_DIR"
 if command -v sha256sum >/dev/null 2>&1; then
-  sha256sum "$OUT_NAME" > "$OUT_NAME.sha256"
+  SHA=sha256sum
 else
-  shasum -a 256 "$OUT_NAME" > "$OUT_NAME.sha256"
+  SHA="shasum -a 256"
 fi
+for f in "$OUT_NAME" "$OUT_NAME_ZSTD"; do
+  $SHA "$f" > "$f.sha256"
+done
 
 echo ">> Done"
-ls -lah "$DIST_DIR/$OUT_NAME" "$DIST_DIR/$OUT_NAME.sha256"
-cat "$DIST_DIR/$OUT_NAME.sha256"
+ls -lah "$DIST_DIR/$OUT_NAME" "$DIST_DIR/$OUT_NAME.sha256" \
+        "$DIST_DIR/$OUT_NAME_ZSTD" "$DIST_DIR/$OUT_NAME_ZSTD.sha256"
+cat "$DIST_DIR/$OUT_NAME.sha256" "$DIST_DIR/$OUT_NAME_ZSTD.sha256"
