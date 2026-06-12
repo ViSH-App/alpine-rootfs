@@ -52,12 +52,29 @@ EOF
 # Blank the MOTD shipped by the miniroot.
 : > "$TARGET/etc/motd"
 
-# System-wide SSL certificate bundle for tools that honor SSL_CERT_FILE.
-mkdir -p "$TARGET/etc/profile.d"
-cat > "$TARGET/etc/profile.d/ssl-cert.sh" <<'EOF'
-export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+# Default environment. No init/login(1) runs in this rootfs, so the spawner
+# may not provide TERM/EDITOR/HOME — every value here is a guarded fallback;
+# whatever the spawner passes in wins. Installed twice: /etc/profile.d for
+# login shells, /etc/bash for interactive non-login bash (sourced by Alpine's
+# /etc/bash/bashrc).
+mkdir -p "$TARGET/etc/profile.d" "$TARGET/etc/bash"
+for f in "$TARGET/etc/profile.d/10-default-env.sh" "$TARGET/etc/bash/10-default-env.sh"; do
+  cat > "$f" <<'EOF'
+export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}"
+# bash self-initializes TERM=dumb when the spawner leaves it unset, so treat
+# dumb as "not provided" too. xterm-direct has no terminfo entry in
+# ncurses-terminfo-base; truecolor is signaled via COLORTERM, not TERM.
+if [ -z "${TERM:-}" ] || [ "$TERM" = dumb ]; then
+  export TERM=xterm-256color
+fi
+export EDITOR="${EDITOR:-nano}"
+export VISUAL="${VISUAL:-$EDITOR}"
+if [ -z "${HOME:-}" ] || [ ! -d "$HOME" ]; then
+  export HOME=/root
+fi
 EOF
-chmod 0644 "$TARGET/etc/profile.d/ssl-cert.sh"
+  chmod 0644 "$f"
+done
 
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
