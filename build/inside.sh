@@ -52,11 +52,10 @@ EOF
 # Blank the MOTD shipped by the miniroot.
 : > "$TARGET/etc/motd"
 
-# Default environment. No init/login(1) runs in this rootfs, so the spawner
-# may not provide TERM/EDITOR/HOME — every value here is a guarded fallback;
-# whatever the spawner passes in wins. Installed twice: /etc/profile.d for
-# login shells, /etc/bash for interactive non-login bash (sourced by Alpine's
-# /etc/bash/bashrc).
+# Default environment. Every value here is a guarded fallback — whatever the
+# spawner passes in wins. Installed twice: /etc/profile.d for login shells
+# (iSH sessions run /bin/login -f root), /etc/bash for interactive non-login
+# bash (sourced by Alpine's /etc/bash/bashrc).
 mkdir -p "$TARGET/etc/profile.d" "$TARGET/etc/bash"
 for f in "$TARGET/etc/profile.d/10-default-env.sh" "$TARGET/etc/bash/10-default-env.sh"; do
   cat > "$f" <<'EOF'
@@ -72,15 +71,51 @@ export VISUAL="${VISUAL:-$EDITOR}"
 if [ -z "${HOME:-}" ] || [ ! -d "$HOME" ]; then
   export HOME=/root
 fi
+# iSH passes these dirs in PATH via execve, but login(1) strips that PATH and
+# /etc/profile resets it to the standard six; re-prepend to match the app.
+for _d in "$HOME/.bun/bin" "$HOME/.local/bin"; do
+  case ":$PATH:" in
+    *":$_d:"*) ;;
+    *) if [ -d "$_d" ]; then PATH="$_d:$PATH"; fi ;;
+  esac
+done
+unset _d
+export PATH
 EOF
   chmod 0644 "$f"
 done
+
+# Make bash the login shell for root: iSH sessions run /bin/login -f root,
+# which starts the shell listed in /etc/passwd. The grep makes the build fail
+# loudly if upstream ever changes the passwd layout and the sed stops matching.
+sed -i 's#^\(root:.*\):/bin/sh$#\1:/bin/bash#' "$TARGET/etc/passwd"
+grep -q '^root:.*:/bin/bash$' "$TARGET/etc/passwd"
+
+# Interactive bash defaults: history behavior and a couple of aliases.
+# Lives only in /etc/bash so ash never sources the bash-only shopt.
+# No grep/ls color aliases on purpose: busybox grep has no --color, and
+# busybox ls is compiled with color-by-default.
+cat > "$TARGET/etc/bash/20-interactive.sh" <<'EOF'
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+shopt -s histappend
+
+alias ll='ls -alh'
+alias la='ls -A'
+EOF
+chmod 0644 "$TARGET/etc/bash/20-interactive.sh"
+
+# Enable the colored prompt shipped (disabled) by alpine-baselayout:
+# red for root, green for everyone else.
+ln -sf color_prompt.sh.disabled "$TARGET/etc/profile.d/color_prompt.sh"
 
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
   "$TARGET/var/cache/apk/"* \
   "$TARGET/tmp/"* \
   "$TARGET/root/.ash_history" \
+  "$TARGET/root/.bash_history" \
   "$TARGET/root/.wget-hsts" 2>/dev/null || true
 
 # Empty the dynamic mountpoints but keep the directories.
