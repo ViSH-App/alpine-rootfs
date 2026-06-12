@@ -29,6 +29,7 @@ echo ">> Building $OUT_NAME, $OUT_NAME_ZSTD (alpine $ALPINE_VERSION, $ARCH on $D
 
 docker run --rm --platform "$DOCKER_PLATFORM" \
   -v "$REPO_ROOT/build:/build:ro" \
+  -v "$REPO_ROOT/patch:/patch:ro" \
   -v "$DIST_DIR:/out" \
   -e ALPINE_BRANCH="$ALPINE_BRANCH" \
   -e ALPINE_VERSION="$ALPINE_VERSION" \

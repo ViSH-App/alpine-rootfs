@@ -110,6 +110,18 @@ chmod 0644 "$TARGET/etc/bash/20-interactive.sh"
 # red for root, green for everyone else.
 ln -sf color_prompt.sh.disabled "$TARGET/etc/profile.d/color_prompt.sh"
 
+# Bake the RootfsPatch overlay (patch/ in the repo) into the image and record
+# its version, so freshly imported roots skip iSH's FsApplyOverlay() on first
+# boot. Applied last: hotfixes win over anything this script set up above.
+PATCH_VERSION=$(tr -cd '0-9' < /patch/VERSION)
+[ -n "$PATCH_VERSION" ]
+if [ -d /patch/files ]; then
+  tar -C /patch/files --exclude='.gitkeep' --exclude='.DS_Store' -cf - . \
+    | tar -C "$TARGET" -xf -
+fi
+mkdir -p "$TARGET/ish"
+printf '%s\n' "$PATCH_VERSION" > "$TARGET/ish/overlay-version"
+
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
   "$TARGET/var/cache/apk/"* \

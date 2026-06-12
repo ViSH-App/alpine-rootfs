@@ -1,0 +1,79 @@
+name: Release rootfs patch
+
+# RootfsPatch has its own release channel, fully decoupled from rootfs
+# releases: a single rolling release tagged `rootfs-patch` whose assets are
+# replaced on every patch update. iSH downloads it at build time from the
+# stable URL releases/download/rootfs-patch/RootfsPatch.tar.gz. The release
+# is never marked "latest" so the rootfs releases/latest URLs keep working.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "patch/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patch-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PATCH_TAG: rootfs-patch
+    steps:
+      - uses: actions/checkout@v6
+
+      # Forgetting the VERSION bump is the one way the patch mechanism fails
+      # silently (devices skip same-version overlays), so gate it in CI.
+      - name: Ensure patch VERSION was bumped
+        run: |
+          set -euo pipefail
+          NEW_VER=$(tr -cd '0-9' < patch/VERSION)
+          test -n "$NEW_VER"
+          TMP=$(mktemp -d)
+          if curl -fsSL -o "$TMP/prev.tar.gz" \
+              "https://github.com/${GITHUB_REPOSITORY}/releases/download/${PATCH_TAG}/RootfsPatch.tar.gz"; then
+            tar -xzf "$TMP/prev.tar.gz" -C "$TMP"
+            PREV_VER=$(python3 -c "import plistlib,sys;print(plistlib.load(open(sys.argv[1],'rb'))['version'])" \
+              "$TMP/RootfsPatch.bundle/manifest.plist")
+            if [ "$NEW_VER" -lt "$PREV_VER" ]; then
+              echo "patch/VERSION ($NEW_VER) is lower than released version ($PREV_VER)" >&2
+              exit 1
+            fi
+            mkdir -p "$TMP/new/files"
+            tar -C patch/files --exclude='.gitkeep' --exclude='.DS_Store' -cf - . \
+              | tar -C "$TMP/new/files" -xf -
+            if ! diff -r "$TMP/RootfsPatch.bundle/files" "$TMP/new/files" >/dev/null; then
+              if [ "$NEW_VER" -le "$PREV_VER" ]; then
+                echo "patch/files changed but patch/VERSION ($NEW_VER) <= released version ($PREV_VER); bump it" >&2
+                exit 1
+              fi
+            fi
+          else
+            echo "no previous RootfsPatch release asset; skipping check"
+          fi
+
+      - name: Package patch
+        run: ./build/package_patch.sh dist
+
+      - name: Publish to rolling release
+        run: |
+          set -euo pipefail
+          VER=$(tr -cd '0-9' < patch/VERSION)
+          TITLE="RootfsPatch v${VER}"
+          NOTES="Rolling release: assets are replaced on every patch update. Current version: ${VER} (overlay gate /ish/overlay-version)."
+          if gh release view "$PATCH_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$PATCH_TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes "$NOTES" --latest=false
+          else
+            gh release create "$PATCH_TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes "$NOTES" --latest=false
+          fi
+          gh release upload "$PATCH_TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+            dist/RootfsPatch.tar.gz dist/RootfsPatch.tar.gz.sha256
