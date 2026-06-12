@@ -3,6 +3,8 @@ name: Build & release rootfs
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
   workflow_dispatch:
     inputs:
       alpine_version:
@@ -27,10 +29,10 @@ jobs:
       ARCH: aarch64
       ALPINE_VERSION: ${{ github.event.inputs.alpine_version || '3.23.3' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up QEMU (arm64)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
 
@@ -46,7 +48,7 @@ jobs:
           echo "name=Alpine ${ALPINE_VERSION} (${ARCH}) — ${DATE} UTC" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.name }}
