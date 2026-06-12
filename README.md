@@ -19,14 +19,14 @@
 下游永远使用「指向最新版本」的稳定 URL，不需要硬编码 tag：
 
 ```
-https://github.com/ViNow-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz
-https://github.com/ViNow-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz.sha256
+https://github.com/ViSH-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz
+https://github.com/ViSH-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz.sha256
 ```
 
 历史版本通过具体 tag 锁定：
 
 ```
-https://github.com/ViNow-App/alpine-rootfs/releases/download/<TAG>/alpine-aarch64-rootfs.tar.gz
+https://github.com/ViSH-App/alpine-rootfs/releases/download/<TAG>/alpine-aarch64-rootfs.tar.gz
 ```
 
 发布列表见 [Releases](../../releases) 页面。
@@ -34,8 +34,8 @@ https://github.com/ViNow-App/alpine-rootfs/releases/download/<TAG>/alpine-aarch6
 校验示例：
 
 ```sh
-curl -fsSLO https://github.com/ViNow-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz
-curl -fsSLO https://github.com/ViNow-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz.sha256
+curl -fsSLO https://github.com/ViSH-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz
+curl -fsSLO https://github.com/ViSH-App/alpine-rootfs/releases/latest/download/alpine-aarch64-rootfs.tar.gz.sha256
 shasum -a 256 -c alpine-aarch64-rootfs.tar.gz.sha256
 ```
 
