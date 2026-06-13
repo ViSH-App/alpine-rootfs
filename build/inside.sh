@@ -58,21 +58,15 @@ EOF
 # spawner passes in wins. Installed twice: /etc/profile.d for login shells
 # (iSH sessions run /bin/login -f root), /etc/bash for interactive non-login
 # bash (sourced by Alpine's /etc/bash/bashrc).
+# TERM/HOME are NOT set here: the app injects them via execve envp and login(1)
+# preserves TERM / sets HOME from /etc/passwd, so a rootfs fallback would only
+# duplicate them. PATH stays because login resets it (see below).
 mkdir -p "$TARGET/etc/profile.d" "$TARGET/etc/bash"
 for f in "$TARGET/etc/profile.d/10-default-env.sh" "$TARGET/etc/bash/10-default-env.sh"; do
   cat > "$f" <<'EOF'
 export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}"
-# bash self-initializes TERM=dumb when the spawner leaves it unset, so treat
-# dumb as "not provided" too. xterm-direct has no terminfo entry in
-# ncurses-terminfo-base; truecolor is signaled via COLORTERM, not TERM.
-if [ -z "${TERM:-}" ] || [ "$TERM" = dumb ]; then
-  export TERM=xterm-256color
-fi
 export EDITOR="${EDITOR:-nano}"
 export VISUAL="${VISUAL:-$EDITOR}"
-if [ -z "${HOME:-}" ] || [ ! -d "$HOME" ]; then
-  export HOME=/root
-fi
 # iSH passes these dirs in PATH via execve, but login(1) strips that PATH and
 # /etc/profile resets it to the standard six; re-prepend to match the app.
 # Unconditional: installers (pip, uv, bun) create these dirs mid-session, and

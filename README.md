@@ -11,7 +11,7 @@
 - 预装：`nano`、`vim`、`git`、`curl`、`openssh-client`、`ca-certificates`、`tzdata` 等常用工具。完整清单见 [`build/packages.txt`](build/packages.txt)。
 - 不启用任何系统服务（无真实 init 环境）。
 - `/proc`、`/sys`、`/dev` 目录保留为空，不包含运行时动态内容。
-- 内置默认环境变量（`SSL_CERT_FILE`、`TERM`、`EDITOR`/`VISUAL`、`HOME`），全部为守护式兜底——spawner 传入的值优先；`PATH` 会无条件前置 `~/.bun/bin`、`~/.local/bin`（目录尚不存在也会加入，安装器创建后即生效）。脚本装在 `/etc/profile.d/`（login shell）与 `/etc/bash/`（交互式非 login bash）两处；非交互执行（`sh -c`）不经过任何 rc 文件，消费方应以 login shell（`-l`）启动，或自行传入所需环境。
+- 内置默认环境变量（`SSL_CERT_FILE`、`EDITOR`/`VISUAL`），全部为守护式兜底——spawner 传入的值优先。`TERM`/`HOME` 不在此设置：由 app 经 execve envp 注入，且 `login(1)` 会保留 `TERM`、从 `/etc/passwd` 设 `HOME`，rootfs 再设只是重复。`PATH` 会无条件前置 `~/.bun/bin`、`~/.local/bin`（目录尚不存在也会加入，安装器创建后即生效）——`login(1)` 把 envp 的 `PATH` 重置为标准六项，这里是 login shell 拿回这两个目录的唯一途径。脚本装在 `/etc/profile.d/`（login shell）与 `/etc/bash/`（交互式非 login bash）两处；非交互执行（`sh -c`）不经过任何 rc 文件，消费方应以 login shell（`-l`）启动，或自行传入所需环境。
 - root 的登录 shell 为 bash，并附带交互默认值（history 行为、`ll`/`la` 别名、彩色提示符——root 红色、普通用户绿色）。
 - 内嵌当前 [`patch/`](patch/) 的全部内容并写入 `/ish/overlay-version`，新导入的 rootfs 首次启动无需再叠加补丁。
 
