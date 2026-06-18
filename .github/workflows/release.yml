@@ -5,8 +5,6 @@ on:
     branches: [main]
     paths-ignore:
       - "**.md"
-      # patch/ has its own release pipeline (patch-release.yml).
-      - "patch/**"
   workflow_dispatch:
     inputs:
       alpine_version:

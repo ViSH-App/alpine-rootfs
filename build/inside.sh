@@ -14,9 +14,7 @@ TARGET=/tmp/rootfs
 WORK=/tmp/work
 mkdir -p "$TARGET" "$WORK"
 
-# build-base stays in the build container only — the target rootfs gets the
-# resulting static binary, never the toolchain.
-apk add --no-cache curl tar zstd build-base >/dev/null
+apk add --no-cache curl tar zstd >/dev/null
 
 MIRROR="https://dl-cdn.alpinelinux.org/alpine"
 MIN_TARBALL="alpine-minirootfs-${ALPINE_VERSION}-${ARCH}.tar.gz"
@@ -110,38 +108,6 @@ chmod 0644 "$TARGET/etc/bash/20-interactive.sh"
 # Enable the colored prompt shipped (disabled) by alpine-baselayout:
 # red for root, green for everyone else.
 ln -sf color_prompt.sh.disabled "$TARGET/etc/profile.d/color_prompt.sh"
-
-# ssh-agent-bridge: pumps bytes between /tmp/ssh-agent.sock and iSH's
-# /dev/ish-ssh-agent device (SSH key management, see docs/ssh-key-management.md
-# in the ish repo). Static musl binary; exits 0 silently when the device is
-# absent (bridge disabled in app Settings, or app predates the feature).
-gcc -static -O2 -Wall -Wextra -Werror -s \
-    -o "$TARGET/usr/sbin/ssh-agent-bridge" /build/ssh-agent-bridge.c
-chmod 0755 "$TARGET/usr/sbin/ssh-agent-bridge"
-
-# Agent socket for login shells. The daemon does its own singleton/staleness
-# probing (connect succeeds → already running → exit), so repeated logins are
-# harmless; it daemonizes only after bind+listen, so the socket is usable the
-# moment this line returns — no polling. Users with their own agent re-export
-# SSH_AUTH_SOCK in ~/.profile, which runs after profile.d and naturally wins.
-cat > "$TARGET/etc/profile.d/ssh-agent.sh" <<'EOF'
-export SSH_AUTH_SOCK=/tmp/ssh-agent.sock
-
-[ -x /usr/sbin/ssh-agent-bridge ] && /usr/sbin/ssh-agent-bridge >/dev/null 2>&1
-EOF
-chmod 0644 "$TARGET/etc/profile.d/ssh-agent.sh"
-
-# Bake the RootfsPatch overlay (patch/ in the repo) into the image and record
-# its version, so freshly imported roots skip iSH's FsApplyOverlay() on first
-# boot. Applied last: hotfixes win over anything this script set up above.
-PATCH_VERSION=$(tr -cd '0-9' < /patch/VERSION)
-[ -n "$PATCH_VERSION" ]
-if [ -d /patch/files ]; then
-  tar -C /patch/files --exclude='.gitkeep' --exclude='.DS_Store' -cf - . \
-    | tar -C "$TARGET" -xf -
-fi
-mkdir -p "$TARGET/ish"
-printf '%s\n' "$PATCH_VERSION" > "$TARGET/ish/overlay-version"
 
 # Defensive cleanup — keep the archive small and reproducible.
 rm -rf \
