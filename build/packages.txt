@@ -1,5 +1,5 @@
 # Packages installed on top of alpine-minirootfs.
-# Keep this list lean — gzipped rootfs target is < 15 MB.
+# Keep this list lean to minimize the compressed rootfs size.
 #
 # Rule of thumb: if BusyBox already provides a usable applet
 # (cp/mv/ls/find/grep/sed/awk/less/tar/gzip/wget/ping/ip/ps/top/...), do
@@ -41,3 +41,6 @@ bind-tools
 # VCS & richer process inspection
 git
 htop
+
+# System information
+fastfetch
