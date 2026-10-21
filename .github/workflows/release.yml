@@ -24,19 +24,14 @@ concurrency:
 
 jobs:
   build:
-    runs-on:
-      group: ubuntu
-      labels: medium
+    # Native arm64: the self-hosted ubuntu runners can't register QEMU
+    # binfmt with their Docker daemon, so arm64 containers fail to exec.
+    runs-on: ubuntu-24.04-arm
     env:
       ARCH: aarch64
       ALPINE_VERSION: ${{ github.event.inputs.alpine_version || '3.23.3' }}
     steps:
       - uses: actions/checkout@v6
-
-      - name: Set up QEMU (arm64)
-        uses: docker/setup-qemu-action@v4
-        with:
-          platforms: arm64
 
       - name: Build rootfs
         run: ./build/build.sh
