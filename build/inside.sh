@@ -42,6 +42,9 @@ echo ">> Installing packages:"
 echo "   $PACKAGES"
 chroot "$TARGET" /sbin/apk update
 chroot "$TARGET" /sbin/apk add --no-cache $PACKAGES
+# The miniroot pins the base packages (musl, ca-certificates-bundle, ...) at
+# the point release; pull in the branch's security fixes as well.
+chroot "$TARGET" /sbin/apk upgrade --no-cache
 
 # Ship default DNS so consumers have working resolution out of the box.
 cat > "$TARGET/etc/resolv.conf" <<EOF
